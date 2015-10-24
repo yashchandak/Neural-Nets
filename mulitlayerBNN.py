@@ -48,11 +48,12 @@ def error_plot():
 
 def generate_data():
     #data = [[.1,.1,0.75],[.4,.1,0.75],[.1,.4,0.75],[.1,.7,0],[.1,.9,0], [.3,.8,0], [.7,.7,0.25],[.6,.99,0.25],[.9,.7,0.25],[.8,.1,1],[.7,.3,1],[.99,.2,1],[.5,.5,0.5],[.8,.5,0.5], [.4,.7,0.5], [.6,.8,0.5]]
-    #data = [[.1,.1,0,0],[.4,.1,0,0],[.1,.4,0,0],[.1,.7,0,1],[.1,.9,0,1], [.3,.8,0,1], [.7,.7,1,0],[.6,.99,1,0],[.9,.7,1,0],[.8,.1,1,1],[.7,.3,1,1],[.99,.2,1,1]]
+    data = [[.1,.1,0,0],[.4,.1,0,0],[.1,.4,0,0],[.1,.7,0,1],[.1,.9,0,1], [.3,.8,0,1], [.7,.7,1,0],[.6,.99,1,0],[.9,.7,1,0],[.8,.1,1,1],[.7,.3,1,1],[.99,.2,1,1]]
     #data = [[0,0,0],[0,1,1],[1,0,1],[1,1,0]] #XOR   
-    data = np.array([[0,0],[1,1],[4,2],[5,4],[6,6],[7,7],[8,9],[9,9],[12,10],[13,9],[15,8],[16,7],[20,4],[21,2],[23,0],[24,0]], dtype = 'float')
+    #data = np.array([[0,0],[1,1],[4,2],[5,4],[6,6],[7,7],[8,9],[9,9],[12,10],[13,9],[15,8],[16,7],[20,4],[21,2],[23,0],[24,0]], dtype = 'float')
+    #data = np.array([[.1,.2,.3,.1],[.3,.5,.8,.2]])    #manual test data
     
-    plt.figure(0)
+    """plt.figure(0)
     plt.plot(data[:,0],data[:,1],'b+')      #data plot
 
     max_x = np.amax(data[:,0])
@@ -63,24 +64,37 @@ def generate_data():
     #normalise the data
     data[:,0] = (data[:,0]-min_x)/(max_x-min_x)
     data[:,1] = (data[:,1]-min_y)/(max_y-min_y)    
-    
+    """
     return data
 
 def get_data(index):
-    #in1, in2, out1, out2 = data[index]             #parse the data to get input and expected output
-    in1, out1 = data[index]    
-    return np.array([in1]),np.array([out1])
+    in1, in2, out1, out2 = data[index]             #parse the data to get input and expected output
+    #in1, out1 = data[index]    
+    return np.array([in1,in2]),np.array([out1, out2])
     
 def train_nets():
-    global layer1, layer2, layer3, err
+    global layer1, layer2, layer3, err, del1, del2, del3
     
     error = 0
     for index in xrange(iter_no):
         #update based on each data point
-        for i in xrange(len(data)):
+        for i in xrange(len(data)):            
+            
             inputs, expected = get_data(i)
             execute_net(inputs)
             error = expected - output   #error vector corresponding to each output
+            
+            del3 = output*(1-output)*error
+            del2 = hidden2*(1-hidden2)*layer3.transpose().dot(del3)
+            del1 = hidden1*(1-hidden1)*layer2.transpose().dot(del2)
+            
+            layer3 = layer3 + learning_rate*del3.reshape(nodes_output,1)*hidden2
+            layer2 = layer2 + learning_rate*del2.reshape(nodes_hidden2,1)*hidden1
+            layer1 = layer1 + learning_rate*del1.reshape(nodes_hidden1,1)*inputs
+            
+            
+            """
+            #IMP: IF USING FOR LOOPS, UPDATE LAYERS BASED ON OLD VALUES AND NOT THE UPDATED ONES         
             
             #update weights between 2nd hidden network and outputs
             for k in range(nodes_hidden2):
@@ -99,6 +113,7 @@ def train_nets():
                     for k in range(nodes_hidden2):
                         for l in range(nodes_output):
                             layer1[j][n] += learning_rate*error[l]*(output[l]*(1-output[l]))*layer3[l][k]*(hidden2[k]*(1-hidden2[k]))*layer2[k][j]*(hidden1[j]*(1-hidden1[j]))*inputs[n]
+           """ 
             
         err[index] = sum(abs(error))
         if index%100 == 0:
@@ -129,10 +144,10 @@ def execute_net(inputs):
 NETWORK TOPOLOGY
 """
 e = 2.718281828
-inp = 1                     #input vector dimensions:
+inp = 2                     #input vector dimensions:
 nodes_hidden1 = 3          #number of nodes in hidden layer 1
 nodes_hidden2 = 2           #number of nodes in hidden layer 2
-nodes_output  = 1           #number of outputs
+nodes_output  = 2           #number of outputs
 learning_rate = 0.1
 iter_no = 1000              #training iterations
 
@@ -147,9 +162,17 @@ hidden1 = np.zeros(nodes_hidden1, 'float')                  #hidden layer 1
 hidden2 = np.zeros(nodes_hidden2, 'float')                  #hidden layer 2
 output = np.zeros(nodes_output, 'float')                    #output layer
 
+#layer1 = np.array([[.1,.2],[.3,.4],[.5,.6]])
+#layer2 = np.array([[0.1,0.2,0.3],[0.4,0.5,0.6]])
+#layer3 = np.array([[0.1,0.2],[0.3,0.4]])
+
 layer1 = np.random.random((nodes_hidden1,inp))              #weights b/w input and first hidden layer nodes
 layer2 = np.random.random((nodes_hidden2,nodes_hidden1))    #weights b/w hidden layer nodes
 layer3 = np.random.random((nodes_output,nodes_hidden2))     #weights b/w second hidden layer and outputs
+
+del1 = np.zeros(nodes_hidden1, 'float')                  #hidden layer 1
+del2 = np.zeros(nodes_hidden2, 'float')                  #hidden layer 2
+del3 = np.zeros(nodes_output, 'float') 
 
     
 def start():
@@ -157,10 +180,10 @@ def start():
     error_plot()
     
     while(1):
-        x = input()
+        x,y = input()
         if x > 99:
             break
-        execute_net([x])
+        execute_net([x,y])
         print "output: ", output
     return 0
     
