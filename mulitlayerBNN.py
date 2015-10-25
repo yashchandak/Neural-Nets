@@ -22,11 +22,10 @@ TODO:
         b) conjugated gradient descent        
 5) normalise input and output data
 6) simulated annealing - decaying learning parameter/step size
-7) cache constant intermediate results instead of recalculating
+7) [DONE] cache constant intermediate results instead of recalculating
 8) end training based on difference from prv error
-9) Matrix notation for weight updates
+9) [DONE] Matrix notation for weight updates
 10)intermediate storage of weights in some file (for recovery/comparison)
-11)bias weights
 
 @author: yash and ankit
 """
