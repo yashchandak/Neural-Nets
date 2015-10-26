@@ -46,7 +46,8 @@ def error_plot():
     
 
 def generate_data():
-    data = [[.1,.1,0.75],[.4,.1,0.75],[.1,.4,0.75],[.1,.7,0],[.1,.9,0], [.3,.8,0], [.7,.7,0.25],[.6,.99,0.25],[.9,.7,0.25],[.8,.1,1],[.7,.3,1],[.99,.2,1],[.5,.5,0.5],[.8,.5,0.5], [.4,.7,0.5], [.6,.8,0.5]]
+    data = [[0,0,0,0,0],[0,0,0,1,1],[0,0,1,0,1],[0,0,1,1,0],[0,1,0,0,1],[0,1,0,1,0],[0,1,1,0,0],[0,1,1,1,1],[1,0,0,0,1],[1,0,0,1,0],[1,0,1,0,0],[1,0,1,1,1],[1,1,0,0,0],[1,1,0,1,1],[1,1,1,0,1],[1,1,1,1,0]]
+    #data = [[.1,.1,0.75],[.4,.1,0.75],[.1,.4,0.75],[.1,.7,0],[.1,.9,0], [.3,.8,0], [.7,.7,0.25],[.6,.99,0.25],[.9,.7,0.25],[.8,.1,1],[.7,.3,1],[.99,.2,1],[.5,.5,0.5],[.8,.5,0.5], [.4,.7,0.5], [.6,.8,0.5]]
     #data = [[.1,.1,0,0],[.4,.1,0,0],[.1,.4,0,0],[.1,.7,0,1],[.1,.9,0,1], [.3,.8,0,1], [.7,.7,1,0],[.6,.99,1,0],[.9,.7,1,0],[.8,.1,1,1],[.7,.3,1,1],[.99,.2,1,1]]
     #data = [[0,0,0],[0,1,1],[1,0,1],[1,1,0]] #XOR   
     #data = [[0,0,0],[0,1,1],[1,0,1],[1,1,0]] #AND
@@ -56,9 +57,10 @@ def generate_data():
     return data
 
 def get_data(index):
-    in1, in2, out1 = data[index]             #parse the data to get input and expected output
+    #in1, in2, out1 = data[index]             #parse the data to get input and expected output
     #in1, out1 = data[index]    
-    return np.array([in1,in2]),np.array([out1])
+    in1, in2, in3, in4, out1 = data[index]
+    return np.array([in1,in2, in3, in4]),np.array([out1])
     
 def train_nets():
     global layer1, layer2, layer3, err, del1, del2, del3
@@ -75,17 +77,17 @@ def train_nets():
             error = expected - output   #error vector corresponding to each output
             error_sum += sum(abs(error))
             
-            del3 = output*(1-output)*error
-            del2 = hidden2*(1-hidden2)*layer3.transpose().dot(del3)
-            del1 = hidden1*(1-hidden1)*layer2.transpose().dot(del2)
+            del3 = output*(1-output)*error + momentum*del3
+            del2 = hidden2*(1-hidden2)*layer3.transpose().dot(del3) + momentum*del2
+            del1 = hidden1*(1-hidden1)*layer2.transpose().dot(del2) + momentum*del1
             
             layer3 = layer3 + learning_rate*del3.reshape(nodes_output,1)*hidden2
             layer2 = layer2 + learning_rate*del2.reshape(nodes_hidden2,1)*hidden1
             layer1 = layer1 + learning_rate*del1.reshape(nodes_hidden1,1)*inputs
 
             
-        err[index] = error/len(data)
-        if index%100 == 0:
+        err[index] = error_sum/len(data)
+        if index%1000 == 0:
             print "Iteration no: ", index, "    error: ", err[index]
 
     
@@ -102,12 +104,13 @@ def execute_net(inputs):
 NETWORK TOPOLOGY
 """
 e = 2.718281828
-inp = 2                     #input vector dimensions:
-nodes_hidden1 = 5          #number of nodes in hidden layer 1
-nodes_hidden2 = 2           #number of nodes in hidden layer 2
+inp = 4                     #input vector dimensions:
+nodes_hidden1 = 20          #number of nodes in hidden layer 1
+nodes_hidden2 = 8           #number of nodes in hidden layer 2
 nodes_output  = 1           #number of outputs
-learning_rate = 0.1
-iter_no = 50000              #training iterations
+learning_rate = 0.5
+momentum = 0.3
+iter_no = 25000              #training iterations
 
 
 """
@@ -134,10 +137,10 @@ def start():
     error_plot()
     
     while(1):
-        x,y = input()
-        if x > 99:
+        v,w,x,y = input()
+        if v > 99:
             break
-        execute_net([x,y])
+        execute_net([v,w,x,y])
         print "output: ", output
     return 0
     
