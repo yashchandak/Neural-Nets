@@ -34,18 +34,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 import matplotlib.pyplot as plt
 import numpy as np
-
-
-def error_plot():
-    plt.figure(1)
-    plt.plot(range(iter_no), err)
-    plt.xlabel('iteration number')
-    plt.ylabel('error value')
-    plt.title('Error PLot')
-    plt.show()    
-    
+import time
+#import dataset
 
 def generate_data():
+
     data = [[0,0,0,0,0],[0,0,0,1,1],[0,0,1,0,1],[0,0,1,1,0],[0,1,0,0,1],[0,1,0,1,0],[0,1,1,0,0],[0,1,1,1,1],[1,0,0,0,1],[1,0,0,1,0],[1,0,1,0,0],[1,0,1,1,1],[1,1,0,0,0],[1,1,0,1,1],[1,1,1,0,1],[1,1,1,1,0]]
     #data = [[.1,.1,0.75],[.4,.1,0.75],[.1,.4,0.75],[.1,.7,0],[.1,.9,0], [.3,.8,0], [.7,.7,0.25],[.6,.99,0.25],[.9,.7,0.25],[.8,.1,1],[.7,.3,1],[.99,.2,1],[.5,.5,0.5],[.8,.5,0.5], [.4,.7,0.5], [.6,.8,0.5]]
     #data = [[.1,.1,0,0],[.4,.1,0,0],[.1,.4,0,0],[.1,.7,0,1],[.1,.9,0,1], [.3,.8,0,1], [.7,.7,1,0],[.6,.99,1,0],[.9,.7,1,0],[.8,.1,1,1],[.7,.3,1,1],[.99,.2,1,1]]
@@ -61,53 +54,67 @@ def get_data(index):
     #in1, out1 = data[index]    
     in1, in2, in3, in4, out1 = data[index]
     return np.array([in1,in2, in3, in4]),np.array([out1])
+
+
+def activate(z, derivative = False):
+    #Sigmoidal activation function
+    if derivative:
+        return z*(1-z)        
+    return 1/(1+e**-z)
+    
+    #tanh activation function
+    
+def plotit(x,y, fig, xlabel, ylabel, title):
+    plt.figure(1)
+    plt.plot(x, y)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.show()    
+    
     
 def train_nets():
-    global layer1, layer2, layer3, err, del1, del2, del3
+    global layer1, layer2, layer3, err, del1, del2, del3, deltas, synapses
     
-    error = 0
-    
-    for index in xrange(iter_no):
+    error = 0    
+    for epoch in xrange(iter_no):
         #update based on each data point
         error_sum = 0
         for i in xrange(len(data)):            
             
             inputs, expected = get_data(i)
             execute_net(inputs)
-            error = expected - output   #error vector corresponding to each output
+            error = expected - receptors[depth-1]   #error vector corresponding to each output
             error_sum += sum(abs(error))
+                     
+            deltas[depth-1] = activate(receptors[depth-1],True)*error
+            for index in xrange(depth-2, -1, -1):
+                deltas[index] = activate(receptors[index],True)*synapses[index+1].transpose().dot(deltas[index+1])
             
-            del3 = output*(1-output)*error + momentum*del3
-            del2 = hidden2*(1-hidden2)*layer3.transpose().dot(del3) + momentum*del2
-            del1 = hidden1*(1-hidden1)*layer2.transpose().dot(del2) + momentum*del1
-            
-            layer3 = layer3 + learning_rate*del3.reshape(nodes_output,1)*hidden2
-            layer2 = layer2 + learning_rate*del2.reshape(nodes_hidden2,1)*hidden1
-            layer1 = layer1 + learning_rate*del1.reshape(nodes_hidden1,1)*inputs
-
-            
-        err[index] = error_sum/len(data)
-        if index%1000 == 0:
-            print "Iteration no: ", index, "    error: ", err[index]
+            #update all the weights
+            for index in xrange(depth-1, 0, -1):
+                synapses[index] += learning_rate*deltas[index].reshape(topology[index+1],1)*receptors[index-1]
+            synapses[0] += learning_rate*deltas[0].reshape(topology[1],1)*inputs
+           
+        err[epoch] = error_sum/len(data)
+        if epoch%1000 == 0:
+            print "Iteration no: ", epoch, "    error: ", err[epoch]
 
     
 def execute_net(inputs):
-    global hidden1, hidden2, output
-    
-    #all layers have sigmoidal activation function
-    hidden1 = 1/(1 + e**-(layer1.dot(inputs)))
-    hidden2 = 1/(1 + e**-(layer2.dot(hidden1)))
-    output  = 1/(1 + e**-(layer3.dot(hidden2)))
-    
+    global hidden1, hidden2, output, synapses, receptors
+
+    #activate the nodes based on sum of incoming synapses    
+    receptors[0] = activate(synapses[0].dot(inputs)) #activate first time based on inputs
+    for index in xrange(1,depth):        
+        receptors[index] = activate(synapses[index].dot(receptors[index-1]))
     
 """
 NETWORK TOPOLOGY
 """
 e = 2.718281828
-inp = 4                     #input vector dimensions:
-nodes_hidden1 = 20          #number of nodes in hidden layer 1
-nodes_hidden2 = 8           #number of nodes in hidden layer 2
-nodes_output  = 1           #number of outputs
+inp = 4                 #input vector dimensions:
+nodes_output  = 1  #number of outputs
 learning_rate = 0.5
 momentum = 0.3
 iter_no = 25000              #training iterations
@@ -119,29 +126,27 @@ DATA generation, internediate values and weights initialisation
 data = generate_data()                                      #get data
 err = np.zeros(iter_no)
 
-hidden1 = np.zeros(nodes_hidden1, 'float')                  #hidden layer 1
-hidden2 = np.zeros(nodes_hidden2, 'float')                  #hidden layer 2
-output = np.zeros(nodes_output, 'float')                    #output layer
+topology = np.array([inp,20,8,nodes_output])
+depth = topology.size - 1
 
-layer1 = np.random.random((nodes_hidden1,inp))              #weights b/w input and first hidden layer nodes
-layer2 = np.random.random((nodes_hidden2,nodes_hidden1))    #weights b/w hidden layer nodes
-layer3 = np.random.random((nodes_output,nodes_hidden2))     #weights b/w second hidden layer and outputs
+synapses = [np.random.random((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+receptors = [np.zeros(size, 'float') for size in topology[1:]] #does not have inputs
+deltas = [np.zeros(size, 'float') for size in topology[1:]]    
 
-del1 = np.zeros(nodes_hidden1, 'float')                  #hidden layer 1
-del2 = np.zeros(nodes_hidden2, 'float')                  #hidden layer 2
-del3 = np.zeros(nodes_output, 'float') 
 
-    
-def start():
+def main():
     train_nets()
-    error_plot()
+    plotit(range(iter_no), err, 1, 'iteration number', 'error value', 'Error PLot')
     
-    while(1):
-        v,w,x,y = input()
-        if v > 99:
-            break
-        execute_net([v,w,x,y])
-        print "output: ", output
-    return 0
-    
-start()
+#    while(1):
+#        v,w,x,y = input()
+#        if v > 99:
+#            break
+#        execute_net([v,w,x,y])
+#        print "output: ", output
+#    return 0
+ 
+start = time.clock()   
+main()
+end = time.clock()
+print 'time elapsed: ', end-start
