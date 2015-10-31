@@ -4,11 +4,11 @@ Created on Thu Oct 22 17:02:55 2015
 
 Multilayer backpropagation neural network
 
-[       ]       [       ]       [       ]       [       ]
-[Input  ]       [Sigmoid]       [sigmoid]       [       ]
-[vector ] ----> [hidden ] ----> [hidden ] ----> [Output ]
-[       ]       [layer 1]       [layer 2]       [       ]
-[       ]       [       ]       [       ]       [       ]
+[       ]       [       ]       [       ]       [       ]       [       ]
+[Input  ]       [Sigmoid]       [sigmoid]       [sigmoid]       [       ]
+[vector ] ====> [hidden ] ----> [hidden ] ----> [hidden ] ====> [Output ]
+[       ]       [layer 1]       [layer  ]       [layer N]       [       ]
+[       ]       [       ]       [  ...  ]       [       ]
  
  ----> full connections
 
@@ -86,7 +86,17 @@ def train_nets():
         for i in xrange(len(test)):
             inputs, expected = dataset.get_test(i)
             execute_net(inputs)
-            test_error_sum += sum(abs(expected - receptors[depth-1]))
+            
+            tt = receptors[depth-1].copy()
+            if tt[0]>tt[1]:
+                tt[0] = 1
+                tt[1] = 0
+            else:
+                tt[0] = 0
+                tt[1] = 1
+                
+            test_error_sum += sum(abs(expected - tt))
+            #test_error_sum += sum(abs(expected - receptors[depth-1]))
         
         err[epoch] = error_sum/len(data)
         test_err[epoch] = test_error_sum/len(test)
@@ -111,7 +121,7 @@ inp = dataset.inp                 #input vector dimensions:
 nodes_output  = dataset.output  #number of outputs
 learning_rate = 0.5
 momentum = 0.3
-iter_no = 25000              #training iterations
+iter_no = 50000              #training iterations
 
 
 """
@@ -122,7 +132,7 @@ test = dataset.test
 err = np.zeros(iter_no)
 test_err = np.zeros(iter_no)
 
-topology = np.array([inp,4,8,4,nodes_output])
+topology = np.array([inp,30,nodes_output])
 depth = topology.size - 1
 
 synapses = [np.random.random((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]

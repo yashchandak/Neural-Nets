@@ -7,11 +7,11 @@ Created on Tue Oct 27 11:41:03 2015
 import numpy as np
 import os, os.path
 import cv2
+import features
 
-inp = 4
-output = 1
-
-dim = 20
+inp = 64
+output =2
+dim = 32
 valid_images = [".jpg",".gif",".png",".tga"]
 data = []
 test = []
@@ -34,14 +34,14 @@ def generate_data():
 def get_data(index):
     #in1, in2, out1 = data[index]             #parse the data to get input and expected output
     #in1, out1 = data[index]    
-    in1, in2, in3, in4, out1 = data[index]
-    return np.array([in1,in2, in3, in4]),np.array([out1])
-    #return data[index][0], data[index][1]
+#    in1, in2, in3, in4, out1 = data[index]
+#    return np.array([in1,in2, in3, in4]),np.array([out1])
+    return data[index][0], data[index][1]
 
 def get_test(index):
-    in1, in2, in3, in4, out1 = test[index]
-    return np.array([in1,in2, in3, in4]),np.array([out1])
-    #return test[index][0], test[index][1]    
+#    in1, in2, in3, in4, out1 = test[index]
+#    return np.array([in1,in2, in3, in4]),np.array([out1])
+    return test[index][0], test[index][1]    
     
 def read_from_folder(path, val):
     imgs = []
@@ -51,22 +51,33 @@ def read_from_folder(path, val):
             continue
         filename = path+'/'+f
         img = cv2.imread(filename,0)
-        img = cv2.resize(img, (dim, dim))
-        img = img.flatten()
-        img = img/255.0
-        imgs.append([img, val])
+#        img = cv2.resize(img, (dim, dim))
+#        img = img.flatten()
+#        img = img/255.0
+        feat = features.get_HoG(img)
+        #print "feat in dataset: ",feat
+        #print feat
+        imgs.append([feat, val])
     return imgs
+    
+def set_feature_parameters():
+    features.bins = 8       #number of bins in HoG
+    features.inp = inp       #dimension of input vector for neural network
+    features.window = 4     #window size = local region for histogram calculation
+    features.dim = dim       #image resized dimension
+    
     
 def compile_data():
     global data,test
+    set_feature_parameters()    
     
-    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/ant", np.array([0,1]))
+    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/airplanes", np.array([0,1]))
     count = int(0.9*len(imgs))
     
     data.extend(imgs[:count])
     test.extend(imgs[count:])
 
-    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/umbrella", np.array([1,0]))
+    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/Motorbikes", np.array([1,0]))
     count = int(0.9*len(imgs))
     
     data.extend(imgs[:count])
@@ -76,5 +87,5 @@ def compile_data():
     np.random.shuffle(test)
     print 'Datset made successfully'
 
-#compile_data()
-generate_data()
+compile_data()
+#generate_data()
