@@ -19,15 +19,17 @@ TODO:
 3) [DONE] generalise to n number of hidden layers
 4) *optimisation
         a) momentum
-        b) conjugated gradient descent        
+        b) conjugated gradient descent  
+        c) regularisation
 5) normalise input and output data
-6) simulated annealing - decaying learning parameter/step size
+6) *simulated annealing - decaying learning parameter/step size
 7) [DONE] cache constant intermediate results instead of recalculating
 8) end training based on difference from prv error
 9) [DONE] Matrix notation for weight updates
 10)*intermediate storage of weights in some file (for recovery/comparison)
 11) geometric image manip
-12)*GPU usage
+12)GPU usage
+13)plotting error function and output for 2d/3d values
 
 @author: yash and ankit
 """
@@ -39,6 +41,30 @@ import numpy as np
 import time
 import dataset
 
+"""
+NETWORK TOPOLOGY
+"""
+e = 2.718281828
+inp = dataset.inp                 #input vector dimensions:
+nodes_output  = dataset.output  #number of outputs
+learning_rate = 0.5
+momentum = 0.3
+iter_no = 25000              #training iterations
+
+"""
+DATA generation, internediate values and weights initialisation
+"""
+data = dataset.data                                      #get data
+test = dataset.test
+err = np.zeros(iter_no)
+test_err = np.zeros(iter_no)
+
+topology = np.array([inp,32,nodes_output])
+depth = topology.size - 1
+
+synapses = [np.random.random((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+receptors = [np.zeros(size, 'float') for size in topology[1:]] #does not have inputs
+deltas = [np.zeros(size, 'float') for size in topology[1:]]   
 
 
 def activate(z, derivative = False):
@@ -59,7 +85,7 @@ def plotit(x,y, fig, xlabel, ylabel, title):
     
     
 def train_nets():
-    global layer1, layer2, layer3, err, del1, del2, del3, deltas, synapses
+    global  err, test_err, deltas, synapses
     
     error = 0    
     for epoch in xrange(iter_no):
@@ -87,13 +113,9 @@ def train_nets():
             inputs, expected = dataset.get_test(i)
             execute_net(inputs)
             
-            tt = receptors[depth-1].copy()
-            if tt[0]>tt[1]:
-                tt[0] = 1
-                tt[1] = 0
-            else:
-                tt[0] = 0
-                tt[1] = 1
+            tt = np.zeros(nodes_output)
+            pos = np.argmax(receptors[depth-1])
+            tt[pos] = 1            
                 
             test_error_sum += sum(abs(expected - tt))
             #test_error_sum += sum(abs(expected - receptors[depth-1]))
@@ -106,52 +128,24 @@ def train_nets():
 
     
 def execute_net(inputs):
-    global hidden1, hidden2, output, synapses, receptors
+    global synapses, receptors
 
     #activate the nodes based on sum of incoming synapses    
     receptors[0] = activate(synapses[0].dot(inputs)) #activate first time based on inputs
     for index in xrange(1,depth):        
         receptors[index] = activate(synapses[index].dot(receptors[index-1]))
-    
-"""
-NETWORK TOPOLOGY
-"""
-e = 2.718281828
-inp = dataset.inp                 #input vector dimensions:
-nodes_output  = dataset.output  #number of outputs
-learning_rate = 0.5
-momentum = 0.3
-iter_no = 50000              #training iterations
-
-
-"""
-DATA generation, internediate values and weights initialisation
-"""
-data = dataset.data                                      #get data
-test = dataset.test
-err = np.zeros(iter_no)
-test_err = np.zeros(iter_no)
-
-topology = np.array([inp,30,nodes_output])
-depth = topology.size - 1
-
-synapses = [np.random.random((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
-receptors = [np.zeros(size, 'float') for size in topology[1:]] #does not have inputs
-deltas = [np.zeros(size, 'float') for size in topology[1:]]    
+     
 
 
 def main():
-    train_nets()
-    plotit(range(iter_no), err, 1, 'iteration number', 'error value', 'Error PLot')
-    plotit(range(iter_no), test_err, 1, 'iteration number', 'error value', 'Error PLot')
-#    while(1):
-#        v,w,x,y = input()
-#        if v > 99:
-#            break
-#        execute_net([v,w,x,y])
-#        print "output: ", output
-#    return 0
- 
+    while(1):
+        train_nets()
+        plotit(range(iter_no), err, 1, 'iteration number', 'error value', 'Error PLot')
+        plotit(range(iter_no), test_err, 1, 'iteration number', 'error value', 'Error PLot')
+        flag = input() #carry on training with more iterations
+        if(flag<1):
+            break
+        
 start = time.clock()   
 main()
 end = time.clock()

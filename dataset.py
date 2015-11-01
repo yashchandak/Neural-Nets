@@ -10,9 +10,11 @@ import cv2
 import features
 
 inp = 64
-output =2
 dim = 32
 valid_images = [".jpg",".gif",".png",".tga"]
+path = "D:/ToDo/research_santa_cruz/train/"
+folders = ['0','1','2','3','4','5','6','7','8','9']
+output = len(folders)
 data = []
 test = []
 
@@ -69,19 +71,33 @@ def set_feature_parameters():
     
 def compile_data():
     global data,test
-    set_feature_parameters()    
+    set_feature_parameters()  
     
-    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/airplanes", np.array([0,1]))
-    count = int(0.9*len(imgs))
+    for idx, folder in enumerate(folders):
+        category = np.zeros(output)
+        category[idx] = 1
+        imgs = read_from_folder(path+folder, category)
+        count = int(0.8*len(imgs))
+        data.extend(imgs[:count])
+        test.extend(imgs[count:])
     
-    data.extend(imgs[:count])
-    test.extend(imgs[count:])
-
-    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/Motorbikes", np.array([1,0]))
-    count = int(0.9*len(imgs))
+#    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/airplanes", np.array([0,1]))
+#    count = int(0.9*len(imgs))
+#    
+#    data.extend(imgs[:count])
+#    test.extend(imgs[count:])
+#
+#    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/Motorbikes", np.array([1,0]))
+#    count = int(0.9*len(imgs))
+#    
+#    data.extend(imgs[:count])
+#    test.extend(imgs[count:])
     
-    data.extend(imgs[:count])
-    test.extend(imgs[count:])
+#    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/Faces_easy", np.array([1,0,0]))
+#    count = int(0.9*len(imgs))
+#    
+#    data.extend(imgs[:count])
+#    test.extend(imgs[count:])
     
     np.random.shuffle(data)
     np.random.shuffle(test)
