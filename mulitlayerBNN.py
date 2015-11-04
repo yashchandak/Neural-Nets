@@ -12,7 +12,7 @@ Multilayer backpropagation neural network
  
  ----> full connections
 
-priyadarshini.j
+
 TODO:
 1) convert to modular class/object based design
 2) *addition of biases

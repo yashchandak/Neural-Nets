@@ -78,7 +78,8 @@ def compile_data():
     
     np.random.shuffle(data)
     np.random.shuffle(test)
-    print 'Datset made successfully'
+    
 
 compile_data()
 #generate_data()
+print 'Datset made successfully'
