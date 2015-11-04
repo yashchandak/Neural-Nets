@@ -11,9 +11,9 @@ import features
 
 inp = 64
 dim = 32
-valid_images = [".jpg",".gif",".png",".tga"]
-path = "D:/ToDo/research_santa_cruz/train/"
-folders = ['0','1','2','3','4','5','6','7','8','9']
+valid_images = [".jpg",".gif",".png",".tga", ".pgm"]
+path = "D:/ToDo/datasets/101_ObjectCategories/"
+folders = ['airplanes','car_UIUC','Motorbikes','Faces_easy']
 output = len(folders)
 data = []
 test = []
@@ -53,12 +53,7 @@ def read_from_folder(path, val):
             continue
         filename = path+'/'+f
         img = cv2.imread(filename,0)
-#        img = cv2.resize(img, (dim, dim))
-#        img = img.flatten()
-#        img = img/255.0
         feat = features.get_HoG(img)
-        #print "feat in dataset: ",feat
-        #print feat
         imgs.append([feat, val])
     return imgs
     
@@ -80,24 +75,6 @@ def compile_data():
         count = int(0.8*len(imgs))
         data.extend(imgs[:count])
         test.extend(imgs[count:])
-    
-#    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/airplanes", np.array([0,1]))
-#    count = int(0.9*len(imgs))
-#    
-#    data.extend(imgs[:count])
-#    test.extend(imgs[count:])
-#
-#    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/Motorbikes", np.array([1,0]))
-#    count = int(0.9*len(imgs))
-#    
-#    data.extend(imgs[:count])
-#    test.extend(imgs[count:])
-    
-#    imgs = read_from_folder("D:/ToDo/datasets/101_ObjectCategories/Faces_easy", np.array([1,0,0]))
-#    count = int(0.9*len(imgs))
-#    
-#    data.extend(imgs[:count])
-#    test.extend(imgs[count:])
     
     np.random.shuffle(data)
     np.random.shuffle(test)

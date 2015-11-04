@@ -12,7 +12,7 @@ Multilayer backpropagation neural network
  
  ----> full connections
 
-
+priyadarshini.j
 TODO:
 1) convert to modular class/object based design
 2) *addition of biases
@@ -49,7 +49,7 @@ inp = dataset.inp                 #input vector dimensions:
 nodes_output  = dataset.output  #number of outputs
 learning_rate = 0.5
 momentum = 0.3
-iter_no = 25000              #training iterations
+iter_no = 3000              #training iterations
 
 """
 DATA generation, internediate values and weights initialisation
@@ -59,7 +59,7 @@ test = dataset.test
 err = np.zeros(iter_no)
 test_err = np.zeros(iter_no)
 
-topology = np.array([inp,32,nodes_output])
+topology = np.array([inp,16,nodes_output])
 depth = topology.size - 1
 
 synapses = [np.random.random((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
@@ -121,7 +121,7 @@ def train_nets():
             #test_error_sum += sum(abs(expected - receptors[depth-1]))
         
         err[epoch] = error_sum/len(data)
-        test_err[epoch] = test_error_sum/len(test)
+        test_err[epoch] = test_error_sum/(2*len(test)) #single mis classification creates an error sum of 2.
         
         if epoch%100 == 0:
             print "Iteration no: ", epoch, "    error: ", err[epoch], " test error: ", test_err[epoch]
