@@ -15,7 +15,7 @@ Multilayer backpropagation neural network
 
 TODO:
 1) convert to modular class/object based design
-2) *addition of biases
+2) [DONE] addition of biases
 3) [DONE] generalise to n number of hidden layers
 4) *optimisation
         a) momentum
@@ -49,7 +49,7 @@ inp = dataset.inp                 #input vector dimensions:
 nodes_output  = dataset.output  #number of outputs
 learning_rate = 0.5
 momentum = 0.3
-iter_no = 3000              #training iterations
+iter_no = 25000              #training iterations
 
 """
 DATA generation, internediate values and weights initialisation
@@ -59,13 +59,13 @@ test = dataset.test
 err = np.zeros(iter_no)
 test_err = np.zeros(iter_no)
 
-topology = np.array([inp,16,nodes_output])
+topology = np.array([inp,32,8,nodes_output])
 depth = topology.size - 1
 
-synapses = [np.random.random((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+synapses = [(np.random.random((size2,size1))-0.5)*2 for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
 receptors = [np.zeros(size, 'float') for size in topology[1:]] #does not have inputs
 deltas = [np.zeros(size, 'float') for size in topology[1:]]   
-
+bias = [(np.random.random(size)-0.5)*2 for size in topology[1:]]
 
 def activate(z, derivative = False):
     #Sigmoidal activation function
@@ -106,7 +106,9 @@ def train_nets():
             #update all the weights
             for index in xrange(depth-1, 0, -1):
                 synapses[index] += learning_rate*deltas[index].reshape(topology[index+1],1)*receptors[index-1]
+                bias[index]     += learning_rate*deltas[index]
             synapses[0] += learning_rate*deltas[0].reshape(topology[1],1)*inputs
+            bias[0]     += learning_rate*deltas[0]
          
          
         for i in xrange(len(test)):
@@ -132,8 +134,8 @@ def execute_net(inputs):
 
     #activate the nodes based on sum of incoming synapses    
     receptors[0] = activate(synapses[0].dot(inputs)) #activate first time based on inputs
-    for index in xrange(1,depth):        
-        receptors[index] = activate(synapses[index].dot(receptors[index-1]))
+    for index in xrange(1,depth):     
+        receptors[index] = activate(synapses[index].dot(receptors[index-1]) + bias[index])
      
 
 

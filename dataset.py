@@ -3,6 +3,10 @@
 Created on Tue Oct 27 11:41:03 2015
 
 @author: yash and ankit
+
+TODO
+1) use CIFAR 10
+
 """
 import numpy as np
 import os, os.path
