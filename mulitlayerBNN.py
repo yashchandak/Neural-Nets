@@ -26,10 +26,11 @@ TODO:
 7) [DONE] cache constant intermediate results instead of recalculating
 8) end training based on difference from prv error
 9) [DONE] Matrix notation for weight updates
-10)*intermediate storage of weights in some file (for recovery/comparison)
+10)*intermediate storage of weights in some file (for recovery/comparison) cPickle/CSV
 11) geometric image manip
 12)GPU usage
 13)plotting error function and output for 2d/3d values
+14) Add momentum for bias/ generalise bias (if possible)
 
 @author: yash and ankit
 """
@@ -39,6 +40,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import features
 import dataset
 
 """
@@ -47,9 +49,9 @@ NETWORK TOPOLOGY
 e = 2.718281828
 inp = dataset.inp                 #input vector dimensions:
 nodes_output  = dataset.output  #number of outputs
-learning_rate = 0.5
+learning_rate = 0.3
 momentum = 0.3
-iter_no = 25000              #training iterations
+iter_no = 5000              #training iterations
 
 """
 DATA generation, internediate values and weights initialisation
@@ -59,10 +61,12 @@ test = dataset.test
 err = np.zeros(iter_no)
 test_err = np.zeros(iter_no)
 
-topology = np.array([inp,32,8,nodes_output])
+topology = np.array([inp,128,64,16,nodes_output])
 depth = topology.size - 1
 
 synapses = [(np.random.random((size2,size1))-0.5)*2 for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+prv_update = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+curr_update= [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
 receptors = [np.zeros(size, 'float') for size in topology[1:]] #does not have inputs
 deltas = [np.zeros(size, 'float') for size in topology[1:]]   
 bias = [(np.random.random(size)-0.5)*2 for size in topology[1:]]
@@ -85,7 +89,7 @@ def plotit(x,y, fig, xlabel, ylabel, title):
     
     
 def train_nets():
-    global  err, test_err, deltas, synapses
+    global  err, test_err, deltas, synapses, prv_update, curr_update
     
     error = 0    
     for epoch in xrange(iter_no):
@@ -105,11 +109,15 @@ def train_nets():
             
             #update all the weights
             for index in xrange(depth-1, 0, -1):
-                synapses[index] += learning_rate*deltas[index].reshape(topology[index+1],1)*receptors[index-1]
+                curr_update[index] = deltas[index].reshape(topology[index+1],1)*receptors[index-1]
+                synapses[index] += learning_rate*curr_update[index] + momentum*prv_update[index]
                 bias[index]     += learning_rate*deltas[index]
-            synapses[0] += learning_rate*deltas[0].reshape(topology[1],1)*inputs
+                
+            curr_update[0] = deltas[0].reshape(topology[1],1)*inputs    
+            synapses[0] += learning_rate*curr_update[0] + momentum*prv_update[0]
             bias[0]     += learning_rate*deltas[0]
-         
+            
+            prv_update = curr_update
          
         for i in xrange(len(test)):
             inputs, expected = dataset.get_test(i)
@@ -137,7 +145,10 @@ def execute_net(inputs):
     for index in xrange(1,depth):     
         receptors[index] = activate(synapses[index].dot(receptors[index-1]) + bias[index])
      
-
+def predict(img):    
+    execute_net(features.get_HoG(img))
+    pos = np.argmax(receptors[depth-1])
+    print dataset.folders[pos]
 
 def main():
     while(1):
