@@ -13,7 +13,7 @@ import os, os.path
 import cv2
 import features
 
-inp = 64
+inp = 512#64
 dim = 32
 valid_images = [".jpg",".gif",".png",".tga", ".pgm"]
 path = "D:/ToDo/datasets/101_ObjectCategories/"
@@ -77,11 +77,14 @@ def compile_data():
         category[idx] = 1
         imgs = read_from_folder(path+folder, category)
         count = int(0.8*len(imgs))
+
+        np.random.shuffle(imgs)        
+        
         data.extend(imgs[:count])
         test.extend(imgs[count:])
     
     np.random.shuffle(data)
-    np.random.shuffle(test)
+    #np.random.shuffle(test)
     
 
 compile_data()

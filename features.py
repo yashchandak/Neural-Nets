@@ -9,22 +9,22 @@ import numpy as np
 import math
 
 dim = 32
-inp = 64
 window = 4
 bins = 8
-
+#inp = 64
+inp = ((dim/window)**2)*bins
 
 def get_HoG(img):
     
-    #resize to dim + 1 to accomodate for dx and dy
-    
+    #resize to dim + 1 to accomodate for dx and dy    
     img = cv2.resize(img, (dim+1, dim+1))
     img = img.astype(int)
     features = np.zeros(inp)
+    features2 = np.zeros(inp)
     hist = np.zeros(bins)
     index, dx, dy, mag, ang, pos = 0,0,0,0,0,0
     div = 6.28/bins 
-    
+    count = 0
     #print dim, inp, window, bins
     
     for r in xrange(0,dim, window):
@@ -41,9 +41,25 @@ def get_HoG(img):
                     pos = int(ang/div)
                     hist[pos] += mag
             
-            #the feature from this window represents highest valued direction
-            features[index] = np.argmax(hist)*1.0/(bins-1)
-            #print 'hist: ', hist, np.argmax(hist)*1.0/(bins-1)
+            #vector of 1 and 0 for gradient direction
+            features2[count*bins + np.argmax(hist)] = 1
+            count += 1
+
+             #suppressing regions without dominant gradient
+#            highest = np.argmax(hist)
+#            val = hist[highest]
+#            hist[highest] = 0
+#            highest2 = np.argmax(hist)
+#            
+#            
+#            if val > 1.25 * hist[highest2]:
+#                features[index] = (highest+1)*1.0/bins
+#            else:
+#                features[index] = 0  
+             
+            #the feature from this window represents highest valued direction 
+            #features[index] = np.argmax(hist)*1.0/(bins-1)          #std. feature
+            #features[index] = np.argmax(hist)*1.0/(bins-1) - 0.5    #centered around 0
             index +=1
-    #print "feat innnn features: ",features        
-    return features
+           
+    return features2

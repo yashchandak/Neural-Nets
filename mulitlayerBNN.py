@@ -18,10 +18,10 @@ TODO:
 2) [DONE] addition of biases
 3) [DONE] generalise to n number of hidden layers
 4) *optimisation
-        a) momentum
+        a) momentum [Done]
         b) conjugated gradient descent  
         c) regularisation
-5) normalise input and output data
+5) [DONE]normalise input and output data
 6) *simulated annealing - decaying learning parameter/step size
 7) [DONE] cache constant intermediate results instead of recalculating
 8) end training based on difference from prv error
@@ -46,37 +46,49 @@ import dataset
 """
 NETWORK TOPOLOGY
 """
-e = 2.718281828
-inp = dataset.inp                 #input vector dimensions:
-nodes_output  = dataset.output  #number of outputs
-learning_rate = 0.3
-momentum = 0.3
-iter_no = 5000              #training iterations
+e           = 2.718281828
+inp         = dataset.inp               #input vector dimensions:
+nodes_output= dataset.output            #number of outputs
+learning_rate= 0.3
+momentum    = 0.3
+iter_no     = 100                      #training iterations
 
 """
 DATA generation, internediate values and weights initialisation
 """
-data = dataset.data                                      #get data
-test = dataset.test
-err = np.zeros(iter_no)
-test_err = np.zeros(iter_no)
+data        = dataset.data              #get data samples
+test        = dataset.test              #get test samples
+err         = np.zeros(iter_no)         #keep track of sample error after each iteration
+test_err    = np.zeros(iter_no)         #keep track of test error after each iteration
 
-topology = np.array([inp,128,64,16,nodes_output])
-depth = topology.size - 1
+topology    = np.array([inp,512,512,nodes_output])
+depth       = topology.size - 1
 
-synapses = [(np.random.random((size2,size1))-0.5)*2 for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
-prv_update = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
-curr_update= [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
-receptors = [np.zeros(size, 'float') for size in topology[1:]] #does not have inputs
-deltas = [np.zeros(size, 'float') for size in topology[1:]]   
-bias = [(np.random.random(size)-0.5)*2 for size in topology[1:]]
+synapses    = [(np.random.random((size2,size1))-0.5)*2 for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+bias        = [(np.random.random(size)-0.5)*2 for size in topology[1:]]
+prv_update  = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+curr_update = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+receptors   = [np.zeros(size, 'float') for size in topology[1:]] #does not have inputs
+deltas      = [np.zeros(size, 'float') for size in topology[1:]]
 
-def activate(z, derivative = False):
-    #Sigmoidal activation function
-    if derivative:
-        return z*(1-z)        
-    return 1/(1+e**-z)
+#for Relu
+#synapses    = [np.random.random((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+#bias        = [np.random.random(size) for size in topology[1:] ]
+
+def activate(z, derivative = False, fn = 'Sigmoid' ):
+    #Sigmoidal activation function    
+    if fn == 'Sigmoid':
+       
+        if derivative:
+            return z*(1-z)        
+        return 1/(1+e**-z)
     
+    #Relu activation function    
+    elif fn == 'Relu':
+        if derivative:
+            return np.array([item > 0 for item in z])
+        else:
+            return np.array([max(0, item) for item in z])
     #tanh activation function
     
 def plotit(x,y, fig, xlabel, ylabel, title):
@@ -92,26 +104,28 @@ def train_nets():
     global  err, test_err, deltas, synapses, prv_update, curr_update
     
     error = 0    
-    for epoch in xrange(iter_no):
+    for epoch in xrange(iter_no):        
         #update based on each data point
+    
         error_sum = 0
         test_error_sum = 0
-        for i in xrange(len(data)):            
-            
+        
+        for i in xrange(len(data)):
             inputs, expected = dataset.get_data(i)
             execute_net(inputs)
             error = expected - receptors[depth-1]   #error vector corresponding to each output
             error_sum += sum(abs(error))
                      
+            #backpropagation using dynamic programming
             deltas[depth-1] = activate(receptors[depth-1],True)*error
             for index in xrange(depth-2, -1, -1):
                 deltas[index] = activate(receptors[index],True)*synapses[index+1].transpose().dot(deltas[index+1])
             
             #update all the weights
             for index in xrange(depth-1, 0, -1):
-                curr_update[index] = deltas[index].reshape(topology[index+1],1)*receptors[index-1]
-                synapses[index] += learning_rate*curr_update[index] + momentum*prv_update[index]
-                bias[index]     += learning_rate*deltas[index]
+                curr_update[index]  = deltas[index].reshape(topology[index+1],1)*receptors[index-1]
+                synapses[index]     += learning_rate*curr_update[index] + momentum*prv_update[index]
+                bias[index]         += learning_rate*deltas[index]
                 
             curr_update[0] = deltas[0].reshape(topology[1],1)*inputs    
             synapses[0] += learning_rate*curr_update[0] + momentum*prv_update[0]
@@ -131,13 +145,14 @@ def train_nets():
             #test_error_sum += sum(abs(expected - receptors[depth-1]))
         
         err[epoch] = error_sum/len(data)
-        test_err[epoch] = test_error_sum/(2*len(test)) #single mis classification creates an error sum of 2.
+        test_err[epoch] = test_error_sum/(2*len(test)) #single misclassification creates an error sum of 2.
         
-        if epoch%100 == 0:
+        if epoch%1 == 0:
             print "Iteration no: ", epoch, "    error: ", err[epoch], " test error: ", test_err[epoch]
 
     
 def execute_net(inputs):
+    #compute one fwd pass of the network
     global synapses, receptors
 
     #activate the nodes based on sum of incoming synapses    
@@ -147,6 +162,7 @@ def execute_net(inputs):
      
 def predict(img):    
     execute_net(features.get_HoG(img))
+    print receptors[depth-1]
     pos = np.argmax(receptors[depth-1])
     print dataset.folders[pos]
 
