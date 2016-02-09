@@ -65,9 +65,9 @@ topology    = np.array([inp,512,512,nodes_output])
 depth       = topology.size - 1
 
 synapses    = [(np.random.random((size2,size1))-0.5)*2 for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
-bias        = [(np.random.random(size)-0.5)*2 for size in topology[1:]]
 prv_update  = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
 curr_update = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+bias        = [(np.random.random(size)-0.5)*2 for size in topology[1:]]
 receptors   = [np.zeros(size, 'float') for size in topology[1:]] #does not have inputs
 deltas      = [np.zeros(size, 'float') for size in topology[1:]]
 
@@ -86,10 +86,16 @@ def activate(z, derivative = False, fn = 'Sigmoid' ):
     #Relu activation function    
     elif fn == 'Relu':
         if derivative:
-            return np.array([item > 0 for item in z])
+            return np.array([1 if item>0 else 0.01 for item in z])
         else:
-            return np.array([max(0, item) for item in z])
+            return np.array([max(0.01, item) for item in z])
+            
     #tanh activation function
+    elif fn == 'Tanh':
+        if derivative:
+            return 1-(z**2)
+        else:
+            return (1-e**(-2*z))/(1+e**(-2*z))
     
 def plotit(x,y, fig, xlabel, ylabel, title):
     plt.figure(1)
@@ -114,6 +120,7 @@ def train_nets():
             inputs, expected = dataset.get_data(i)
             execute_net(inputs)
             error = expected - receptors[depth-1]   #error vector corresponding to each output
+            #print error
             error_sum += sum(abs(error))
                      
             #backpropagation using dynamic programming
@@ -156,7 +163,7 @@ def execute_net(inputs):
     global synapses, receptors
 
     #activate the nodes based on sum of incoming synapses    
-    receptors[0] = activate(synapses[0].dot(inputs)) #activate first time based on inputs
+    receptors[0] = activate(synapses[0].dot(inputs) )#+ bias[0] #activate first time based on inputs
     for index in xrange(1,depth):     
         receptors[index] = activate(synapses[index].dot(receptors[index-1]) + bias[index])
      
