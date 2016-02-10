@@ -64,7 +64,7 @@ test_err    = np.zeros(iter_no)         #keep track of test error after each ite
 topology    = np.array([inp,256,128,nodes_output])
 depth       = topology.size - 1
 
-synapses    = [np.random.randn(size2,size1) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+synapses    = [np.random.randn(size2,size1)/size1 for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
 prv_update  = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
 curr_update = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
 bias        = [np.zeros(size, 'float') for size in topology[:]]
@@ -87,11 +87,11 @@ def activate(z, derivative = False, fn = 'Sigmoid' ):
         return 1/(1+e**-z)
     
     #Relu activation function    
-    elif fn == 'Relu':
+    elif fn == 'ReLu':
         if derivative:
-            return np.array([1 if item>0 else 0.01 for item in z])
+            return np.array([1 if item>0.000000000000001 else 0.000000000000001 for item in z])
         else:
-            return np.array([max(0.01, item) for item in z])
+            return np.array([max(0.000000000000001, item) for item in z])
             
     #tanh activation function
     elif fn == 'Tanh':
@@ -99,6 +99,9 @@ def activate(z, derivative = False, fn = 'Sigmoid' ):
             return 1-(z**2)
         else:
             return (1-e**(-2*z))/(1+e**(-2*z))
+            
+    else:
+        print 'ERROR! invlaid function'
     
 def plotit(x,y, fig, xlabel, ylabel, title):
     plt.figure(1)
