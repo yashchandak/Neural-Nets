@@ -17,20 +17,27 @@ dim = 32
 inp = dim
 valid_images = [".jpg",".gif",".png",".tga", ".pgm"]
 path = "D:/ToDo/datasets/101_ObjectCategories/"
-folders = ['airplanes','car_UIUC','Motorbikes','Faces_easy']#,'watch','Leopards','butterfly','starfish','scorpion','revolver']
+folders = ['airplanes']#,'car_UIUC','Motorbikes','Faces_easy']#,'watch','Leopards','butterfly','starfish','scorpion','revolver']
 output = len(folders)
 data = []
 test = []
+len_test, len_data = 0, 0
+
 
 def preprocess(img):
-    return cv2.resize(img, (dim, dim))
+    #return np.reshape(cv2.resize(img, (dim, dim))/255.0, (289,1))
+    return cv2.resize(img, (dim, dim))/255.0
+
 
 def get_data(index):
     return data[index][0], data[index][1]
 
+
 def get_test(index):
     return test[index][0], test[index][1]    
     
+
+
 def read_from_folder(path, val):
     imgs = []
     for f in os.listdir(path):
@@ -42,6 +49,8 @@ def read_from_folder(path, val):
         feat = preprocess(img)
         imgs.append([feat, val])
     return imgs
+
+
 
 def compile_data():
     global data,test
@@ -62,4 +71,5 @@ def compile_data():
     
 
 compile_data()
+len_data, len_test = len(data), len(test)
 print 'Datset made successfully'

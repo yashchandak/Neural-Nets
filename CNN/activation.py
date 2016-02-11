@@ -13,6 +13,8 @@ import numpy as np
 
 e = 2.718281828
 
+
+
 def activate(z, fn = 'Sigmoid' ):
     #Sigmoidal activation function
     if fn == 'Sigmoid' or fn == 'ReLu':
@@ -35,6 +37,10 @@ def activate(z, fn = 'Sigmoid' ):
             
     else:
         print 'ERROR! invalid function!'
+
+
+
+
         
 def derivative(z, fn = 'Sigmoid'):
     #Sigmoidal derivative function
