@@ -10,19 +10,15 @@ import activation as act
 def fwdPass(inputs, receptors, synapses, bias):
     receptors[0] = inputs.reshape(inputs.size)
     for index in xrange(0,net.depth): 
-        receptors[index+1] = act.activate(synapses[index].dot(receptors[index]) + bias[index+1]) 
+        receptors[index+1] = act.activate(synapses[index].dot(receptors[index]) + bias[index+1], net.act_fn[index+1]) 
  
 
        
 def backprop(receptors, synapses, bias, deltas, error):
     #compute deltas for FC NNet receptors
-    #receptors[0] = inputs.reshape(inputs.size)
-    deltas[net.depth] = act.derivative(receptors[net.depth])*error
-    for index in xrange(net.depth-1, -1, -1):        
-        fn = 'Sigmoid'
-        if index == 0: #index 0 has the ReLu output of Conv NNet
-            fn = 'ReLu'  
-        deltas[index] = act.derivative(receptors[index], fn)*synapses[index].transpose().dot(deltas[index+1])
+    deltas[net.depth] = act.derivative(receptors[net.depth], net.act_fn[net.depth])*error
+    for index in xrange(net.depth-1, -1, -1):  
+        deltas[index] = act.derivative(receptors[index], net.act_fn[index])*synapses[index].transpose().dot(deltas[index+1])
 
     #update the weights of FC NNet synapses
     for index in range(net.depth-1, -1, -1):

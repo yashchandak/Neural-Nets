@@ -9,6 +9,7 @@ import numpy as np
 
 def upsample(conv_del, conv_err, switch):
     #upsampling the error matrix using switches of max pool
+    
     for i in range(switch.shape[0]):
         for j in range(switch.shape[1]):
             conv_del[switch[i][j][0]][switch[i][j][1]] = conv_err[i][j]

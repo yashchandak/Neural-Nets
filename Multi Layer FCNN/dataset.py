@@ -17,7 +17,7 @@ inp = 512#64
 dim = 32
 valid_images = [".jpg",".gif",".png",".tga", ".pgm"]
 path = "D:/ToDo/datasets/101_ObjectCategories/"
-folders = ['airplanes','car_UIUC','Motorbikes','Faces_easy']#,'watch','Leopards','butterfly','starfish','scorpion','revolver']
+folders = ['airplanes','car_UIUC','Motorbikes','Faces_easy',]#'watch','Leopards','butterfly','starfish','scorpion','revolver']
 output = len(folders)
 data = []
 test = []
@@ -44,10 +44,14 @@ def get_data(index):
 #    return np.array([in1,in2, in3, in4]),np.array([out1])
     return data[index][0], data[index][1]
 
+
+
 def get_test(index):
 #    in1, in2, in3, in4, out1 = test[index]
 #    return np.array([in1,in2, in3, in4]),np.array([out1])
     return test[index][0], test[index][1]    
+
+
     
 def read_from_folder(path, val):
     imgs = []
@@ -61,6 +65,8 @@ def read_from_folder(path, val):
         imgs.append([feat, val])
     return imgs
     
+
+
 def set_feature_parameters():
     features.bins = 8       #number of bins in HoG
     features.inp = inp       #dimension of input vector for neural network
@@ -68,6 +74,7 @@ def set_feature_parameters():
     features.dim = dim       #image resized dimension
     
     
+
 def compile_data():
     global data,test
     set_feature_parameters()  

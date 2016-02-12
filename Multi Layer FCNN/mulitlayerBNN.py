@@ -49,8 +49,15 @@ NETWORK TOPOLOGY
 e           = 2.718281828
 inp         = dataset.inp               #input vector dimensions:
 nodes_output= dataset.output            #number of outputs
-learning_rate= 0.5
-momentum    = 0.5
+
+#for Sigmoid
+#learning_rate= 0.5
+#momentum    = 0.5
+
+#for ReLu and Tanh
+learning_rate= 0.005
+momentum    = 0.005
+
 iter_no     = 100                      #training iterations
 
 """
@@ -62,23 +69,21 @@ err         = np.zeros(iter_no)         #keep track of sample error after each i
 test_err    = np.zeros(iter_no)         #keep track of test error after each iteration
 
 topology    = np.array([inp,256,128,nodes_output])
+#act_fn      = ['Tanh', 'Tanh', 'Tanh', 'Tanh']
+act_fn      = ['ReLu', 'ReLu', 'ReLu', 'ReLu']
+#act_fn      = ['Sigmoid', 'Sigmoid', 'Sigmoid', 'Sigmoid']
 depth       = topology.size - 1
 
-synapses    = [np.random.randn(size2,size1)/size1 for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
+synapses    = [np.random.randn(size2,size1)*(1.0/np.sqrt(size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
 prv_update  = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
 curr_update = [np.zeros((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
-bias        = [np.zeros(size, 'float') for size in topology[:]]
+bias        = [np.random.random((size))*0.1 for size in topology[:] ]
 receptors   = [np.zeros(size, 'float') for size in topology[:]] #does not have inputs
 deltas      = [np.zeros(size, 'float') for size in topology[:]]
 
-#replace inputs with receptor[0]
-#inc receptors and deltas by 1
 
-#for Relu
-#synapses    = [np.random.random((size2,size1)) for size1,size2 in zip(topology[0:depth],topology[1:depth+1])]
-#bias        = [np.random.random(size) for size in topology[1:] ]
 
-def activate(z, derivative = False, fn = 'Sigmoid' ):
+def activate(z, derivative = False, fn = 'ReLu' ):
     #Sigmoidal activation function    
     if fn == 'Sigmoid':
        
@@ -86,12 +91,12 @@ def activate(z, derivative = False, fn = 'Sigmoid' ):
             return z*(1-z)        
         return 1/(1+e**-z)
     
-    #Relu activation function    
+    #Leaky Relu activation function    
     elif fn == 'ReLu':
         if derivative:
-            return np.array([1 if item>0.000000000000001 else 0.000000000000001 for item in z])
+            return np.array([1 if item>0.01 else 0.01 for item in z])
         else:
-            return np.array([max(0.000000000000001, item) for item in z])
+            return np.array([max(0.01, item) for item in z])
             
     #tanh activation function
     elif fn == 'Tanh':
@@ -123,16 +128,17 @@ def train_nets():
         test_error_sum = 0
         
         for i in xrange(len(data)):
-            receptors[0], expected = dataset.get_data(i)
-            execute_net(receptors[0])
+            inputs, expected = dataset.get_data(i)
+            
+            execute_net(inputs)
             error = expected - receptors[depth]   #error vector corresponding to each output
             #print error
             error_sum += sum(abs(error))
                      
             #backpropagation using dynamic programming
-            deltas[depth] = activate(receptors[depth],True)*error
+            deltas[depth] = activate(receptors[depth],True, act_fn[depth])*error
             for index in xrange(depth-1, -1, -1):
-                deltas[index] = activate(receptors[index],True)*synapses[index].transpose().dot(deltas[index+1])
+                deltas[index] = activate(receptors[index],True, act_fn[index])*synapses[index].transpose().dot(deltas[index+1])
             
             #update all the weights
             for index in xrange(depth-1, -1, -1):
@@ -163,13 +169,13 @@ def train_nets():
 def execute_net(inputs):
     #compute one fwd pass of the network
     global synapses, receptors
-    
+    receptors[0] = inputs
     for index in xrange(0,depth): 
         #activate the nodes based on sum of incoming synapses
         #if index == 0:
         #     receptors[index+1] = activate(synapses[index].dot(receptors[index]))# remove bias for 0th
         #else:
-             receptors[index+1] = activate(synapses[index].dot(receptors[index]) + bias[index+1]) 
+             receptors[index+1] = activate(synapses[index].dot(receptors[index]) + bias[index+1], False, act_fn[index+1]) 
      
 def predict(img):    
     execute_net(features.get_HoG(img))
