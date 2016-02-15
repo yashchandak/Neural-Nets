@@ -3,6 +3,9 @@
 Created on Thu Feb 11 11:30:37 2016
 
 @author: yash
+
+***Both downsampling and upsampling are the biggest bottlenecks in the entire code***
+
 """
 import parameters as net
 import numpy as np
@@ -36,4 +39,3 @@ def downsample(convol, pool, switch):
             pool[x/net.pool_size][y/net.pool_size] = maximum
             switch[x/net.pool_size][y/net.pool_size][0] = pos[0]
             switch[x/net.pool_size][y/net.pool_size][1] = pos[1]
-    

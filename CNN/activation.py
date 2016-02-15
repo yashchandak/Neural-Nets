@@ -17,17 +17,17 @@ e = 2.718281828
 
 def activate(z, fn = 'Sigmoid' ):
     #Sigmoidal activation function
-    if fn == 'Sigmoid' or fn == 'ReLu':
+    if fn == 'Sigmoid':
         return 1/(1+e**-z)
     
     #Relu activation function    
     elif fn == 'ReLu':
         if len(z.shape) == 1:
-            return np.array([max(0.0001, item) for item in z])
+            return np.array([max(0.01, item) for item in z])
         
         elif len(z.shape) == 2:
             w,h = z.shape
-            return np.array([[max(0.0001, item) for item in z[i]] for i in range(h)])
+            return np.array([[max(0.01, item) for item in z[i]] for i in range(h)])
         else:
             print 'Error! Relu activation not defined for this shape: ' , z.shape
             
@@ -50,11 +50,11 @@ def derivative(z, fn = 'Sigmoid'):
     #Relu derivative function    
     elif fn == 'ReLu':
         if len(z.shape) == 1:
-            return np.array([1 if item>0.0001 else 0.0001 for item in z])
+            return np.array([1 if item>0.01 else 0.01 for item in z])
         
         elif len(z.shape) == 2:
             w,h = z.shape
-            return np.array([[1 if item>0.0001 else 0.0001 for item in z[i]] for i in range(h)])  
+            return np.array([[1 if item>0.01 else 0.01 for item in z[i]] for i in range(h)])  
         else:
             print 'Error! Relu derivative not defined for this shape: ' , z.shape
             
