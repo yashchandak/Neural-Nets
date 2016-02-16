@@ -16,13 +16,13 @@ ToDo:
 [2]     : [Done] Check activaiton of 2d matrices
 [3]     : [Pointless] ndimage.convolve flips the filter, shouldn't be a problem though as it is flipped throughout the program
 [4]     : [Done] connect next level filters to all previous filter outputs, not just the one in it's axis
-[5]     : conv fitler error not required to be stored for all conv layers. One is sufficient
+[5]     : [Ignore]conv fitler error not required to be stored for all conv layers. One is sufficient
 [6]**   : batch updates
 [7]     : droupouts
 [8]     : momentum for filter weights
 [9]     : [Done] First bias problem for FC NNet
 [10]    : Effecient way to address array? a[1][1] or a[1,1]
-[11]    : Better weight initialisation
+[11]    : [Done, kind of] Better weight initialisation
 [12]*   : learing rate decay and simulated annealing
 [13]    : [Bugy] Gradient checking step
 [14]*   : Avg pooling
@@ -33,6 +33,7 @@ ToDo:
 [19]*   : OpenBlas with fastDot for quick matrix multiplication
 [20]    : Intermediate cpickling
 [21]*   : Pooling and filter weight updates are the biggest bottlenecks in the code, fix them.(use cython)
+[22]    : Visualisation of the filtered image
 
 correctness of hyper parameters :
 [(layer1 - filter size + 2*padding)/stride] + 1  =  (an integer)
@@ -69,7 +70,8 @@ pool_size   = 2                         #pooling window's dimension
 
 act_fn_conv = ['Sigmoid', 'Sigmoid']
 #act_fn_conv = ['ReLu', 'ReLu']
-#for first layer features, 3d filters are not required
+
+#for first layer features, 3d filters are not required, curently using only filters on 0th axis for inputs
 filters     = np.random.randn(conv_layers, filter_count, filter_count, filter_size, filter_size)*np.sqrt(1.0/(filter_count*filter_size**2))
 update_fil  = np.zeros((conv_layers, filter_count, filter_count, filter_size, filter_size ))
 conv_delta  = np.array([np.zeros((filter_count, inp//pool_size**i, inp//pool_size**i)) for i in range(conv_layers)])

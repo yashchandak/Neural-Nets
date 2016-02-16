@@ -11,6 +11,7 @@ import numpy as np
 import time
 import plotting as plot
 import dataset
+import batchNormalisation as BN
 
 
 #variable aliases for debugging purpose only, can be removed later :)
@@ -27,6 +28,14 @@ bis        = net.bias
 reeptors   = net.receptors
 
 
+def visualise(img):
+    execute_net(dataset.preprocess(img))
+    #for i in each convovled layer
+    #   for j in convolved(i)
+    #    im = 255*(i,j -min(i,j))/max(i,j)
+    #    print convolution : i, filter : j
+    #   imshow('image', im)
+    #   a = input()
 
 def predict(img):    
     execute_net(dataset.preprocess(img))
@@ -95,7 +104,7 @@ def train_nets():
         error_sum = 0        
         for i in xrange(net.len_data):            
             inputs, expected = dataset.get_data(i)
-            
+            print net.learn_rate_conv
             execute_net(inputs)
             
             error = expected - net.receptors[net.depth]   #error vector corresponding to each output

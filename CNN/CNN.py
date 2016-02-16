@@ -9,7 +9,6 @@ import activation as act
 import pooling as pool
 import scipy.ndimage as sp
 import numpy as np
-import time
 
 
 def fwdPass(inputs, convolved, filters, conv_bias, pooled, switches):
@@ -50,7 +49,7 @@ def backprop(filters, conv_bias, pooled, switches, conv_error, conv_delta, error
                                                           filters[conv][fil][prv_fil].transpose(),
                                                           mode = 'constant' )*act.derivative(pooled[conv-1][prv_fil], net.act_fn_conv[conv-1])
 
-                for prv_fil in range(net.filter_count):
+                    #for prv_fil in range(net.filter_count):
                     w,h = pooled[conv-1][prv_fil].shape
                     prv = pooled[conv-1][prv_fil]
                     for i in range(net.filter_size):
