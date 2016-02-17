@@ -16,7 +16,7 @@ import cv2
 
 valid_images = [".jpg",".gif",".png",".tga", ".pgm"]
 path = "D:/ToDo/DRDO/IRDatabase/Data/"
-folders = ['Tracked']#,'watch','Leopards','butterfly','starfish','scorpion','revolver']
+folders = ['neg']#,'watch','Leopards','butterfly','starfish','scorpion','revolver']
 write_path = "D:/ToDo/DRDO/IRDatabase/Data/manipulated/"
 
 #    
@@ -43,8 +43,10 @@ def flipped(img, s):
 #    
 #def occluded():
 #    
-#def contrasted():
-#    
+def contrasted(img, s):
+    im = cv2.equalizeHist(img)
+    write(im, 'contrasted/con_'+s+'.jpg')    
+    
 
 
 def read_from_folder(path):
@@ -71,13 +73,13 @@ def compile_data():
             #cv2.imshow('window', imgs[i])
             s = str(i)
 #            warped(imgs[i],s)
-            inverted(imgs[i],s)
+            #inverted(imgs[i],s)
 #            flipped(imgs[i],s)
 #            rotated(imgs[i],s)
 #            blurred(imgs[i],s)
 #            noisy(imgs[i],s)
 #            occluded(imgs[i],s)
-#            contrasted(imgs[i],s)
+            contrasted(imgs[i],s)
     
 def write(img,  tag):
     add = write_path + tag
