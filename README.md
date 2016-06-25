@@ -7,20 +7,14 @@ Easily deployable on RaspBerry Pi
 
 
 # Dependencies 
-Python
-
-Numpy
-
-OpenCV (if imags are used)
+- Python
+- Numpy
+- OpenCV (if imags are used)
 
 
 #Features
-Convolution Nets
-
-Fully connected nets
-
-Tanh/ReLu/Sigmoid activation functions
-
-Dataset augmentation
-
-Save and Load intermediate training weights (Cpickle)
+- Convolution Nets
+- Fully connected nets
+- Tanh/ReLu/Sigmoid activation functions
+- Dataset augmentation
+- Save and Load intermediate training weights (Cpickle)
