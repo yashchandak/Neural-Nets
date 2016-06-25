@@ -1,5 +1,5 @@
 # Neural-Nets
-Small Neural Net Model
+Simple Neural Net Model
 
 Generic structure, size and number of layers can be custom defined and trained
 
