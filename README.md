@@ -14,7 +14,13 @@ Numpy
 OpenCV (if imags are used)
 
 
-#Supported Nets:
+#Features
 Convolution Nets
 
 Fully connected nets
+
+Tanh/ReLu/Sigmoid activation functions
+
+Dataset augmentation
+
+Save and Load intermediate training weights (Cpickle)
