@@ -1,7 +1,7 @@
 # Neural-Nets
-Small generic neural nets in Python
+Small Neural Net Model
 
-Can be custom trained trained as per the need
+Generic structure, size and number of layers can be custom defined and trained
 
 Easily deployable on RaspBerry Pi
 
